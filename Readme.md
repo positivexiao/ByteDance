@@ -196,12 +196,6 @@ adb push ".\qwen2.5-0.5b-instruct-q4_k_m.gguf" "/sdcard/Download/"
 - 编译时**不会**将 Key 注入 `BuildConfig` 或 APK
 - 系统备份规则中排除加密 prefs 文件
 
-**提交 GitHub 前请确认：**
-
-- [ ] 未提交 `*.apk` / `*.aab` / `app/build/`
-- [ ] 未提交 `local.properties`、`local.env`、真实 API Key
-- [ ] 若曾泄露 Key 或旧版 APK，请在火山控制台**轮换 Key**
-
 ---
 
 ## 常见问题
