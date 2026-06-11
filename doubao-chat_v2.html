@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>豆包 AI 聊天原型</title>
+<script src="https://modao.cc/agent-py/static/source/js/tailwindcss.js"></script>
+<script src="https://modao.cc/agent-py/static/source/js/iconify-icon.min.js"></script>
+<style>
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        .pulse-animation {
+            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        .message-bubble {
+            max-width: 85%;
+            word-wrap: break-word;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @keyframes slide-up {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .action-sheet-open {
+            animation: slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+        }
+        .action-sheet-close {
+            animation: slide-up 0.25s cubic-bezier(0.32, 0.72, 0, 1) reverse forwards;
+        }
+        .overlay-show {
+            animation: fade-in 0.3s ease forwards;
+        }
+        .overlay-hide {
+            animation: fade-in 0.25s ease reverse forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex justify-center items-center min-h-screen font-sans">
+<!-- 移动端容器 -->
+<div class="w-[375px] h-[812px] bg-white shadow-2xl rounded-[40px] border-[8px] border-gray-900 relative overflow-hidden flex flex-col">
+<!-- 顶部导航栏 -->
+<header class="flex items-center justify-between px-5 pt-12 pb-3 bg-white/80 backdrop-blur-md z-10">
+<div class="text-sm font-medium text-gray-500 cursor-pointer hover:text-blue-600 transition-colors">发现</div>
+<div class="flex items-center gap-1">
+<div class="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center">
+<iconify-icon class="text-white text-sm" icon="ri:robot-2-fill"></iconify-icon>
+</div>
+<span class="font-bold text-gray-800 text-lg">豆包</span>
+<iconify-icon class="text-gray-400" icon="ri:arrow-down-s-line"></iconify-icon>
+</div>
+<div class="flex gap-4">
+<iconify-icon class="text-gray-600 text-xl cursor-pointer" icon="ri:history-line"></iconify-icon>
+</div>
+</header>
+<!-- 消息对话区域 -->
+<main class="flex-1 overflow-y-auto px-4 py-4 hide-scrollbar space-y-6" id="chat-container">
+<!-- 时间分隔 -->
+<div class="text-center text-[10px] text-gray-400 my-2">今天 14:30</div>
+<!-- AI 欢迎语 -->
+<div class="flex flex-col items-start space-y-2">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+<iconify-icon class="text-blue-600 text-xs" icon="ri:robot-2-fill"></iconify-icon>
+</div>
+<span class="text-xs font-medium text-gray-500">豆包</span>
+</div>
+<div class="message-bubble bg-gray-100 text-gray-800 p-4 rounded-2xl rounded-tl-none text-sm leading-relaxed shadow-sm">
+                    你好！我是豆包，你的智能 AI 助手。我可以帮你写代码、翻译文档、规划旅行，或者只是陪你聊天。有什么我可以帮你的吗？
+                </div>
+</div>
+<!-- 用户消息 -->
+<div class="flex flex-col items-end space-y-2">
+<div class="message-bubble bg-blue-600 text-white p-4 rounded-2xl rounded-tr-none text-sm shadow-md">
+                    帮我写一首关于夏日海边的现代诗。
+                </div>
+</div>
+<!-- AI 回复（带联网搜索） -->
+<div class="flex flex-col items-start space-y-2">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+<iconify-icon class="text-blue-600 text-xs" icon="ri:robot-2-fill"></iconify-icon>
+</div>
+<span class="text-xs font-medium text-gray-500">豆包</span>
+</div>
+<!-- 联网搜索标识 -->
+<div class="flex items-center gap-1.5 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-[10px] text-blue-600 mb-1">
+<iconify-icon icon="ri:global-line"></iconify-icon>
+<span>已搜索 5 个网页</span>
+</div>
+<div class="message-bubble bg-gray-100 text-gray-800 p-4 rounded-2xl rounded-tl-none text-sm leading-relaxed shadow-sm">
+<p class="mb-2">碎金洒在蔚蓝的绸缎上，<br/>海浪是夏日寄给沙滩的信笺。<br/>椰林在微风中低语，<br/>每一阵咸涩的风，都藏着远方的秘密。</p>
+<p>咸柠檬气泡水在杯中升腾，<br/>那是少年不愿醒来的仲夏梦。</p>
+<!-- 引用来源 -->
+<div class="mt-3 pt-3 border-t border-gray-200 flex flex-wrap gap-2">
+<a class="text-[10px] text-gray-400 hover:text-blue-500 flex items-center gap-1" href="#">
+<iconify-icon icon="ri:link"></iconify-icon> 来源：诗歌中国
+                        </a>
+<a class="text-[10px] text-gray-400 hover:text-blue-500 flex items-center gap-1" href="#">
+<iconify-icon icon="ri:link"></iconify-icon> 来源：夏日灵感库
+                        </a>
+</div>
+</div>
+<!-- 消息反馈图标（卡通风格） -->
+<div class="flex items-center gap-5 px-2 mt-1">
+<button class="feedback-btn group flex flex-col items-center gap-0.5 text-gray-400 hover:text-blue-500 transition-all duration-200" onclick="handleFeedback(this, 'like')">
+<div class="w-9 h-9 rounded-full bg-gray-100 group-hover:bg-blue-50 border border-transparent group-hover:border-blue-100 flex items-center justify-center text-xl transition-all duration-200">👍</div>
+<span class="text-[9px] leading-none mt-0.5 group-hover:text-blue-500">赞</span>
+</button>
+<button class="feedback-btn group flex flex-col items-center gap-0.5 text-gray-400 hover:text-blue-500 transition-all duration-200" onclick="handleFeedback(this, 'dislike')">
+<div class="w-9 h-9 rounded-full bg-gray-100 group-hover:bg-blue-50 border border-transparent group-hover:border-blue-100 flex items-center justify-center text-xl transition-all duration-200">👎</div>
+<span class="text-[9px] leading-none mt-0.5 group-hover:text-blue-500">踩</span>
+</button>
+<button class="feedback-btn group flex flex-col items-center gap-0.5 text-gray-400 hover:text-blue-500 transition-all duration-200" onclick="copyToClipboard('碎金洒在蔚蓝的绸缎上...')">
+<div class="w-9 h-9 rounded-full bg-gray-100 group-hover:bg-blue-50 border border-transparent group-hover:border-blue-100 flex items-center justify-center text-xl transition-all duration-200">📋</div>
+<span class="text-[9px] leading-none mt-0.5 group-hover:text-blue-500">复制</span>
+</button>
+<button class="feedback-btn group flex flex-col items-center gap-0.5 text-gray-400 hover:text-blue-500 transition-all duration-200" onclick="regenerate(this)">
+<div class="w-9 h-9 rounded-full bg-gray-100 group-hover:bg-blue-50 border border-transparent group-hover:border-blue-100 flex items-center justify-center text-xl transition-all duration-200">🔄</div>
+<span class="text-[9px] leading-none mt-0.5 group-hover:text-blue-500">重试</span>
+</button>
+</div>
+</div>
+<!-- 动态消息容器 -->
+<div class="space-y-6" id="dynamic-messages"></div>
+<!-- AI 思考中状态 (默认隐藏) -->
+<div class="hidden flex flex-col items-start space-y-2" id="thinking-indicator">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+<iconify-icon class="text-blue-600 text-xs" icon="ri:robot-2-fill"></iconify-icon>
+</div>
+<span class="text-xs font-medium text-gray-500">豆包正在思考...</span>
+</div>
+<div class="bg-gray-100 p-4 rounded-2xl rounded-tl-none flex gap-1 items-center">
+<div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0s"></div>
+<div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+<div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+</div>
+</div>
+</main>
+<!-- 模式切换：联网搜索 / 生成图片 -->
+<div class="px-4 pt-2 pb-1">
+<div class="flex gap-2">
+<button class="px-3.5 py-1.5 rounded-full border border-gray-200 text-gray-400 text-xs bg-transparent hover:border-blue-300 transition-all duration-200 flex items-center gap-1" id="web-search-btn" onclick="toggleMode('web-search')">
+<span>🌐</span>
+<span>联网搜索</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-full border border-gray-200 text-gray-400 text-xs bg-transparent hover:border-blue-300 transition-all duration-200 flex items-center gap-1" id="image-gen-btn" onclick="toggleMode('image-gen')">
+<span>🎨</span>
+<span>生成图片</span>
+</button>
+</div>
+</div>
+<!-- 底部输入区域 -->
+<footer class="bg-white border-t border-gray-100 px-4 pt-3 pb-8">
+<div class="flex items-end gap-2">
+<!-- 输入框 -->
+<div class="flex-1 bg-gray-100 rounded-[24px] flex flex-col overflow-hidden border border-transparent focus-within:border-blue-200 focus-within:bg-white transition-all">
+<textarea class="w-full bg-transparent px-4 py-3 text-sm outline-none resize-none max-h-32" id="chat-input" oninput="handleInput(this)" placeholder="给豆包发送消息..." rows="1"></textarea>
+<div class="flex justify-end items-center px-4 pb-2">
+<button class="text-gray-400 hover:text-blue-500 transition-colors" onclick="showToast('插件功能开发中...')">
+<iconify-icon class="text-lg" icon="ri:plug-line"></iconify-icon>
+</button>
+</div>
+</div>
+<!-- 右侧操作按钮组：相机 + 麦克风 + 发送 -->
+<div class="flex items-end gap-2 mb-1">
+<!-- 相机 -->
+<button class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all text-xl" onclick="openCameraSheet()">
+                        📷
+                    </button>
+<!-- 麦克风 -->
+<div class="relative">
+<div class="absolute inset-0 bg-blue-400 rounded-full hidden pulse-animation" id="mic-pulse"></div>
+<button class="relative z-10 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all text-xl" id="mic-btn" onclick="toggleMic()">
+                            🎤
+                        </button>
+</div>
+<!-- 发送 -->
+<button class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-white transition-all" disabled="" id="send-btn" onclick="sendMessage()">
+<iconify-icon class="text-xl" icon="ri:send-plane-fill"></iconify-icon>
+</button>
+</div>
+</div>
+<p class="text-[10px] text-center text-gray-400 mt-4">内容由 AI 生成，请仔细甄别</p>
+</footer>
+<!-- Toast 提示 -->
+<div class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-4 py-2 rounded-full opacity-0 pointer-events-none transition-all duration-300 z-50" id="toast">
+            已复制到剪贴板
+        </div>
+<!-- 相机动作面板遮罩层 -->
+<div class="fixed inset-0 bg-black/40 z-40 hidden pointer-events-none opacity-0 transition-all duration-300" id="camera-overlay" onclick="closeCameraSheet()"></div>
+<!-- 相机动作面板 -->
+<div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-[375px] bg-white rounded-t-2xl z-50 translate-y-full transition-transform duration-300 shadow-2xl" id="camera-sheet">
+<div class="px-6 py-6 space-y-1">
+<button class="w-full flex items-center gap-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 rounded-xl transition-colors" onclick="selectCameraOption('拍照')">
+<span class="text-2xl">📷</span>
+<span>拍照</span>
+</button>
+<div class="h-px bg-gray-100 mx-2"></div>
+<button class="w-full flex items-center gap-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 rounded-xl transition-colors" onclick="selectCameraOption('从相册选择')">
+<span class="text-2xl">🖼️</span>
+<span>从相册选择</span>
+</button>
+<div class="h-px bg-gray-100 mx-2 my-1"></div>
+<button class="w-full py-3.5 text-base text-center text-gray-500 hover:bg-gray-50 rounded-xl transition-colors font-medium" onclick="closeCameraSheet()">
+                    取消
+                </button>
+</div>
+</div>
+</div>
+<script>
+        const input = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatContainer = document.getElementById('chat-container');
+        const dynamicMessages = document.getElementById('dynamic-messages');
+        const thinkingIndicator = document.getElementById('thinking-indicator');
+        const micBtn = document.getElementById('mic-btn');
+        const micPulse = document.getElementById('mic-pulse');
+        const cameraOverlay = document.getElementById('camera-overlay');
+        const cameraSheet = document.getElementById('camera-sheet');
+
+        let isRecording = false;
+
+        // 随机回复库
+        const randomReplies = [
+            "这是一个非常好的问题！从我的知识库来看，夏天的海边不仅有美景，还有独特的生态系统。",
+            "我明白了，你是在寻找更多关于这种风格的创意灵感吗？我可以再为你提供几个方向。",
+            "海边的夏天总是让人心旷神怡。除了诗歌，你是否也想了解一些避暑胜地的推荐？",
+            "有趣的想法！结合你之前的描述，我认为我们可以从视觉、听觉和触觉三个维度来深度创作。",
+            "收到！正在为你优化内容。夏日的阳光、咸咸的海风、还有那冰镇的西瓜，都是最好的素材。"
+        ];
+
+        function handleInput(el) {
+            el.style.height = 'auto';
+            el.style.height = (el.scrollHeight) + 'px';
+            
+            if (el.value.trim().length > 0) {
+                sendBtn.disabled = false;
+                sendBtn.classList.remove('bg-gray-200');
+                sendBtn.classList.add('bg-blue-600');
+            } else {
+                sendBtn.disabled = true;
+                sendBtn.classList.remove('bg-blue-600');
+                sendBtn.classList.add('bg-gray-200');
+            }
+        }
+
+        function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+
+            // 添加用户消息
+            const userMsg = `
+                <div class="flex flex-col items-end space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div class="message-bubble bg-blue-600 text-white p-4 rounded-2xl rounded-tr-none text-sm shadow-md">
+                        ${text}
+                    </div>
+                </div>
+            `;
+            dynamicMessages.innerHTML += userMsg;
+            
+            // 清空输入
+            input.value = '';
+            handleInput(input);
+            scrollToBottom();
+
+            // 模拟 AI 思考
+            setTimeout(() => {
+                thinkingIndicator.classList.remove('hidden');
+                scrollToBottom();
+                
+                setTimeout(() => {
+                    thinkingIndicator.classList.add('hidden');
+                    addAIResponse();
+                }, 1500);
+            }, 500);
+        }
+
+        function addAIResponse() {
+            const reply = randomReplies[Math.floor(Math.random() * randomReplies.length)];
+            const aiMsg = `
+                <div class="flex flex-col items-start space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div class="flex items-center gap-2 mb-1">
+                        <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+                            <iconify-icon icon="ri:robot-2-fill" class="text-blue-600 text-xs"></iconify-icon>
+                        </div>
+                        <span class="text-xs font-medium text-gray-500">豆包</span>
+                    </div>
+                    <div class="message-bubble bg-gray-100 text-gray-800 p-4 rounded-2xl rounded-tl-none text-sm leading-relaxed shadow-sm">
+                        ${reply}
+                    </div>
+                    <div class="flex items-center gap-5 px-2 mt-1">
+                        <button onclick="handleFeedback(this, 'like')" class="feedback-btn group flex flex-col items-center gap-0.5 text-gray-400 hover:text-blue-500 transition-all duration-200">
+                            <div class="w-9 h-9 rounded-full bg-gray-100 group-hover:bg-blue-50 border border-transparent group-hover:border-blue-100 flex items-center justify-center text-xl transition-all duration-200">👍</div>
+                            <span class="text-[9px] leading-none mt-0.5 group-hover:text-blue-500">赞</span>
+                        </button>
+                        <button onclick="handleFeedback(this, 'dislike')" class="feedback-btn group flex flex-col items-center gap-0.5 text-gray-400 hover:text-blue-500 transition-all duration-200">
+                            <div class="w-9 h-9 rounded-full bg-gray-100 group-hover:bg-blue-50 border border-transparent group-hover:border-blue-100 flex items-center justify-center text-xl transition-all duration-200">👎</div>
+                            <span class="text-[9px] leading-none mt-0.5 group-hover:text-blue-500">踩</span>
+                        </button>
+                        <button onclick="copyToClipboard('${reply}')" class="feedback-btn group flex flex-col items-center gap-0.5 text-gray-400 hover:text-blue-500 transition-all duration-200">
+                            <div class="w-9 h-9 rounded-full bg-gray-100 group-hover:bg-blue-50 border border-transparent group-hover:border-blue-100 flex items-center justify-center text-xl transition-all duration-200">📋</div>
+                            <span class="text-[9px] leading-none mt-0.5 group-hover:text-blue-500">复制</span>
+                        </button>
+                        <button onclick="regenerate(this)" class="feedback-btn group flex flex-col items-center gap-0.5 text-gray-400 hover:text-blue-500 transition-all duration-200">
+                            <div class="w-9 h-9 rounded-full bg-gray-100 group-hover:bg-blue-50 border border-transparent group-hover:border-blue-100 flex items-center justify-center text-xl transition-all duration-200">🔄</div>
+                            <span class="text-[9px] leading-none mt-0.5 group-hover:text-blue-500">重试</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            dynamicMessages.innerHTML += aiMsg;
+            scrollToBottom();
+        }
+
+        function handleFeedback(btn, type) {
+            const parent = btn.parentElement;
+            const isSelected = btn.classList.contains('text-blue-600');
+            
+            // 重置同级所有反馈按钮
+            parent.querySelectorAll('.feedback-btn').forEach(b => {
+                b.classList.remove('text-blue-600');
+                const circle = b.querySelector('div');
+                if (circle) {
+                    circle.classList.remove('bg-blue-50', 'border-blue-200');
+                    circle.classList.add('bg-gray-100');
+                }
+            });
+
+            if (!isSelected) {
+                btn.classList.remove('text-gray-400');
+                btn.classList.add('text-blue-600');
+                const circle = btn.querySelector('div');
+                if (circle) {
+                    circle.classList.remove('bg-gray-100');
+                    circle.classList.add('bg-blue-50', 'border-blue-200');
+                }
+            }
+        }
+
+        function regenerate(btn) {
+            const bubble = btn.closest('.flex-col').querySelector('.message-bubble');
+            bubble.classList.add('opacity-50');
+            setTimeout(() => {
+                bubble.innerText = randomReplies[Math.floor(Math.random() * randomReplies.length)];
+                bubble.classList.remove('opacity-50');
+                showToast('已重新生成内容');
+            }, 500);
+        }
+
+        function toggleMic() {
+            isRecording = !isRecording;
+            if (isRecording) {
+                micBtn.classList.remove('bg-gray-100', 'text-gray-600');
+                micBtn.classList.add('bg-blue-600', 'text-white');
+                micPulse.classList.remove('hidden');
+                showToast('正在录音...');
+            } else {
+                micBtn.classList.remove('bg-blue-600', 'text-white');
+                micBtn.classList.add('bg-gray-100', 'text-gray-600');
+                micPulse.classList.add('hidden');
+                showToast('录音结束');
+            }
+        }
+
+        function copyToClipboard(text) {
+            showToast('已复制到剪贴板');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2000);
+        }
+
+        function scrollToBottom() {
+            chatContainer.scrollTo({
+                top: chatContainer.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        // 模式切换：联网搜索 / 生成图片
+        function toggleMode(type) {
+            const btn = document.getElementById(type === 'web-search' ? 'web-search-btn' : 'image-gen-btn');
+            const isActive = btn.classList.contains('text-blue-600');
+            
+            if (isActive) {
+                btn.classList.remove('text-blue-600', 'border-blue-500', 'bg-blue-50');
+                btn.classList.add('text-gray-400', 'border-gray-200', 'bg-transparent');
+            } else {
+                btn.classList.remove('text-gray-400', 'border-gray-200', 'bg-transparent');
+                btn.classList.add('text-blue-600', 'border-blue-500', 'bg-blue-50');
+            }
+        }
+
+        // 相机动作面板
+        function openCameraSheet() {
+            cameraOverlay.classList.remove('hidden', 'pointer-events-none');
+            cameraOverlay.classList.add('pointer-events-auto');
+            // 触发重排后显示
+            requestAnimationFrame(() => {
+                cameraOverlay.classList.remove('opacity-0');
+                cameraOverlay.classList.add('opacity-100');
+                cameraSheet.classList.remove('translate-y-full');
+            });
+        }
+
+        function closeCameraSheet() {
+            cameraSheet.classList.add('translate-y-full');
+            cameraOverlay.classList.remove('opacity-100');
+            cameraOverlay.classList.add('opacity-0');
+            setTimeout(() => {
+                cameraOverlay.classList.add('hidden', 'pointer-events-none');
+                cameraOverlay.classList.remove('pointer-events-auto');
+            }, 300);
+        }
+
+        function selectCameraOption(option) {
+            closeCameraSheet();
+            setTimeout(() => {
+                showToast('已选择 ' + option);
+            }, 350);
+        }
+
+        // 初始化滚动到底部
+        window.onload = scrollToBottom;
+    </script>
+</body>
+</html>
