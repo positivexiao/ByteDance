@@ -242,14 +242,6 @@ adb push ".\qwen2.5-0.5b-instruct-q4_k_m.gguf" "/sdcard/Download/"
 - 编译时**不会**将 Key 注入 `BuildConfig` 或 APK
 - 系统备份规则排除：加密 prefs、Room 聊天数据库（`backup_rules.xml`、`data_extraction_rules.xml`）
 
-**提交 GitHub 前请确认：**
-
-- [ ] 未提交 `*.apk` / `*.aab` / `build/` 目录
-- [ ] 未提交 `local.properties`、`local.env`、`.env`、真实 API Key
-- [ ] 已提交 `shared/` 模块、`.gitmodules`、`patches/`
-- [ ] 克隆后执行 `git submodule update --init` 并应用 `patches/llama-android-lib.patch`
-- [ ] 若曾泄露 Key 或旧版 APK，请在火山控制台**轮换 Key**
-
 ---
 
 ## 常见问题
