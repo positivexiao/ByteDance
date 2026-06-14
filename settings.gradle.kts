@@ -23,6 +23,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "DoubaoApp"
+include(":shared")
 include(":app")
 include(":llama-android-lib")
 project(":llama-android-lib").projectDir = file("llama/llama.cpp/examples/llama.android/lib")

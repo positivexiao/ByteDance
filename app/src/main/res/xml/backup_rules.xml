@@ -7,4 +7,7 @@
 -->
 <full-backup-content>
     <exclude domain="sharedpref" path="doubao_secure_settings.xml"/>
+    <exclude domain="database" path="doubao_chat_db"/>
+    <exclude domain="database" path="doubao_chat_db-shm"/>
+    <exclude domain="database" path="doubao_chat_db-wal"/>
 </full-backup-content>

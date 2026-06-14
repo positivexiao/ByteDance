@@ -1,0 +1,71 @@
+﻿diff --git a/examples/llama.android/lib/build.gradle.kts b/examples/llama.android/lib/build.gradle.kts
+index ae95f41a8..232a2365b 100644
+--- a/examples/llama.android/lib/build.gradle.kts
++++ b/examples/llama.android/lib/build.gradle.kts
+@@ -30,8 +30,8 @@ android {
+                 arguments += "-DLLAMA_OPENSSL=OFF"
+ 
+                 arguments += "-DGGML_NATIVE=OFF"
+-                arguments += "-DGGML_BACKEND_DL=ON"
+-                arguments += "-DGGML_CPU_ALL_VARIANTS=ON"
++                arguments += "-DGGML_BACKEND_DL=OFF"
++                arguments += "-DGGML_CPU_ALL_VARIANTS=OFF"
+                 arguments += "-DGGML_LLAMAFILE=OFF"
+             }
+         }
+@@ -42,7 +42,7 @@ android {
+     externalNativeBuild {
+         cmake {
+             path("src/main/cpp/CMakeLists.txt")
+-            version = "3.31.6"
++            version = "4.1.2"
+         }
+     }
+     compileOptions {
+diff --git a/examples/llama.android/lib/src/main/cpp/CMakeLists.txt b/examples/llama.android/lib/src/main/cpp/CMakeLists.txt
+index 20c9e3b2c..5a7ff6124 100644
+--- a/examples/llama.android/lib/src/main/cpp/CMakeLists.txt
++++ b/examples/llama.android/lib/src/main/cpp/CMakeLists.txt
+@@ -19,7 +19,7 @@ if(DEFINED ANDROID_ABI)
+     message(STATUS "Detected Android ABI: ${ANDROID_ABI}")
+     if(ANDROID_ABI STREQUAL "arm64-v8a")
+         set(GGML_SYSTEM_ARCH "ARM")
+-        set(GGML_CPU_KLEIDIAI ON)
++        set(GGML_CPU_KLEIDIAI OFF)
+         set(GGML_OPENMP ON)
+     elseif(ANDROID_ABI STREQUAL "x86_64")
+         set(GGML_SYSTEM_ARCH "x86")
+diff --git a/examples/llama.android/lib/src/main/cpp/ai_chat.cpp b/examples/llama.android/lib/src/main/cpp/ai_chat.cpp
+index 03ab96cfd..ef23f3907 100644
+--- a/examples/llama.android/lib/src/main/cpp/ai_chat.cpp
++++ b/examples/llama.android/lib/src/main/cpp/ai_chat.cpp
+@@ -28,10 +28,10 @@ constexpr int   N_THREADS_MIN           = 2;
+ constexpr int   N_THREADS_MAX           = 4;
+ constexpr int   N_THREADS_HEADROOM      = 2;
+ 
+-constexpr int   DEFAULT_CONTEXT_SIZE    = 8192;
++constexpr int   DEFAULT_CONTEXT_SIZE    = 2048;
+ constexpr int   OVERFLOW_HEADROOM       = 4;
+ constexpr int   BATCH_SIZE              = 512;
+-constexpr float DEFAULT_SAMPLER_TEMP    = 0.3f;
++constexpr float DEFAULT_SAMPLER_TEMP    = 0.7f;
+ 
+ static llama_model                      * g_model;
+ static llama_context                    * g_context;
+@@ -45,13 +45,12 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_init(JNIEnv *env, jobject /*unu
+     // Set llama log handler to Android
+     llama_log_set(aichat_android_log_callback, nullptr);
+ 
+-    // Loading all CPU backend variants
+     const auto *path_to_backend = env->GetStringUTFChars(nativeLibDir, 0);
+-    LOGi("Loading backends from %s", path_to_backend);
+-    ggml_backend_load_all_from_path(path_to_backend);
++    LOGi("Native library dir: %s", path_to_backend);
+     env->ReleaseStringUTFChars(nativeLibDir, path_to_backend);
+ 
+-    // Initialize backends
++    // Initialize statically linked backends. Android dynamic backend scanning is unreliable
++    // under app linker namespaces, so GGML_BACKEND_DL is disabled in Gradle.
+     llama_backend_init();
+     LOGi("Backend initiated; Log handler set.");
+ }

@@ -22,8 +22,14 @@ build/
 # ---- 本地配置（勿提交） ----
 local.properties
 local.env
+.env
+.env.*
+!.env.example
 *.keystore
 *.jks
+
+# ---- IDE / 工具缓存 ----
+.cursor/
 
 # ---- 安装包 / 备份 ----
 *.apk

@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.bytedace.doubaoapp.ui.MainScreen
 import com.bytedace.doubaoapp.ui.theme.DoubaoAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -16,10 +15,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             DoubaoAppTheme {
-                MainScreen(
-                    contextPolicy = app.contextPolicy,
-                    repository = app.chatRepository
-                )
+                DoubaoAppContent(app)
             }
         }
     }
